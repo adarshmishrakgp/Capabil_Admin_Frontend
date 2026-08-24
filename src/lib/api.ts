@@ -4,9 +4,9 @@
  * pages read from lib/data.ts instead and this module is never called.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
+import { API_URL as BASE, USE_MOCK } from './config';
 
-export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== 'false';
+export { USE_MOCK };
 
 export type ListMeta = { page: number; limit: number; total: number };
 export type Envelope<T> = { success: boolean; data: T; meta?: ListMeta };

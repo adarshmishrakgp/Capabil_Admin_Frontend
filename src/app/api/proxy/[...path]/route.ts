@@ -1,8 +1,8 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { API_URL } from '@/lib/config';
 import { TOKEN_COOKIE } from '@/lib/session';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
 
 /**
  * Client components call /api/proxy/<api-path>; this attaches the access token
@@ -12,7 +12,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
 async function forward(request: Request, ctx: { params: Promise<{ path: string[] }> }) {
   const { path } = await ctx.params;
   const token = (await cookies()).get(TOKEN_COOKIE)?.value;
-  const url = `${API}/${path.join('/')}${new URL(request.url).search}`;
+  const url = `${API_URL}/${path.join('/')}${new URL(request.url).search}`;
 
   const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
   const init: RequestInit = { method: request.method, headers, cache: 'no-store' };
@@ -36,7 +36,7 @@ async function forward(request: Request, ctx: { params: Promise<{ path: string[]
     });
   } catch {
     return NextResponse.json(
-      { success: false, error: { code: 'API_UNREACHABLE', message: `Cannot reach the API at ${API}` } },
+      { success: false, error: { code: 'API_UNREACHABLE', message: `Cannot reach the API at ${API_URL}` } },
       { status: 502 },
     );
   }

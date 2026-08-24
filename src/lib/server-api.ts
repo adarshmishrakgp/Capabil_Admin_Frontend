@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
+import { API_URL } from './config';
 import { TOKEN_COOKIE } from './session';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
 
 export type ApiOk<T> = { ok: true; data: T; meta?: { page: number; limit: number; total: number } };
 export type ApiFail = { ok: false; error: string };
@@ -15,7 +15,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   const token = (await cookies()).get(TOKEN_COOKIE)?.value;
 
   try {
-    const res = await fetch(`${API}${path}`, {
+    const res = await fetch(`${API_URL}${path}`, {
       ...init,
       headers: {
         ...(init.body ? { 'Content-Type': 'application/json' } : {}),
@@ -33,6 +33,6 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     }
     return { ok: true, data: body.data as T, meta: body.meta };
   } catch {
-    return { ok: false, error: `Cannot reach the API at ${API}. Start it with "npm run dev" in admin-api.` };
+    return { ok: false, error: `Cannot reach the API at ${API_URL}. Start it with "npm run dev" in admin-api.` };
   }
 }

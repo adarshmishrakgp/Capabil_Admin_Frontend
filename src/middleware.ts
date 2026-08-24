@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { API_URL } from '@/lib/config';
 import { REFRESH_COOKIE, TOKEN_COOKIE, USER_COOKIE } from '@/lib/session';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
 
 const cookieOptions = {
   httpOnly: true,
@@ -54,7 +54,7 @@ export async function middleware(request: NextRequest) {
   // Renew a couple of minutes before expiry so in-flight requests never 401.
   if (refresh && remaining !== null && remaining < 120) {
     try {
-      const res = await fetch(`${API}/auth/refresh`, {
+      const res = await fetch(`${API_URL}/auth/refresh`, {
         method: 'POST',
         headers: { Cookie: `refreshToken=${refresh}` },
         cache: 'no-store',

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
+import { API_URL, USE_MOCK } from '@/lib/config';
 import { REFRESH_COOKIE, TOKEN_COOKIE, USER_COOKIE } from '@/lib/session';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/api/v1';
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== 'false';
 
 const DEMO = { email: 'admin@capabiliq.com', password: 'Admin@12345' };
 
@@ -37,7 +36,7 @@ export async function POST(request: Request) {
   let user: { name: string; email: string; role: string } | null = null;
 
   try {
-    const res = await fetch(`${API}/auth/login`, {
+    const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -83,7 +82,7 @@ export async function DELETE(request: Request) {
   const refresh = request.headers.get('cookie')?.match(/cq_refresh=([^;]+)/)?.[1];
 
   try {
-    await fetch(`${API}/auth/logout`, {
+    await fetch(`${API_URL}/auth/logout`, {
       method: 'POST',
       headers: refresh ? { Cookie: `refreshToken=${refresh}` } : {},
       cache: 'no-store',
