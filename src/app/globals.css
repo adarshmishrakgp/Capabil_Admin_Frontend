@@ -29,7 +29,7 @@
            focus-visible:ring-offset-2 disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-brand text-white shadow-glow hover:brightness-110;
+    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700;
   }
   .btn-ghost {
     @apply btn border border-ink-200 bg-white text-ink-700 hover:border-brand-300 hover:text-brand-700;

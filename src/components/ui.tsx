@@ -253,7 +253,7 @@ export function Avatar({ name, size = 32 }: { name: string; size?: number }) {
     .toUpperCase();
   return (
     <span
-      className="inline-grid shrink-0 place-items-center rounded-full bg-brand text-xs font-semibold text-white"
+      className="inline-grid shrink-0 place-items-center rounded-full bg-brand-600 text-xs font-semibold text-white"
       style={{ width: size, height: size }}
     >
       {initials}

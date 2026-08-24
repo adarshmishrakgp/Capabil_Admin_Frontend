@@ -67,7 +67,7 @@ export function BarList({
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-ink-100">
             <div
-              className="h-full rounded-full bg-brand"
+              className="h-full rounded-full bg-brand-600"
               style={{ width: `${Math.max((item.value / max) * 100, 4)}%` }}
             />
           </div>
@@ -91,7 +91,7 @@ export function Funnel({ stages }: { stages: { stage: string; count: number }[] 
                 className="flex h-full items-center justify-end rounded-lg pr-2.5 text-xs font-semibold text-white"
                 style={{
                   width: `${Math.max(pct, 8)}%`,
-                  background: `linear-gradient(90deg,#6d4ac8 ${100 - i * 8}%,#b94a9c)`,
+                  background: '#6d4ac8',
                 }}
               >
                 {s.count}

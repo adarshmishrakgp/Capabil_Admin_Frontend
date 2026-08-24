@@ -75,12 +75,7 @@ export default function Sidebar({
         className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-5"
         aria-label="CapabilIQ admin home"
       >
-        <Image src="/logo.png" alt="CapabilIQ" width={256} height={64} priority className="h-6 w-auto" />
-        <span className="border-l border-white/20 pl-3 text-xs leading-tight text-white/55">
-          Admin
-          <br />
-          Console
-        </span>
+        <Image src="/logo.png" alt="CapabilIQ" width={256} height={64} priority className="h-7 w-auto" />
       </Link>
 
       <nav className="scrollbar-night flex-1 overflow-y-auto px-3 py-4">
@@ -100,7 +95,7 @@ export default function Sidebar({
                       className={[
                         'group flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[15px] transition-colors',
                         active
-                          ? 'bg-brand font-medium text-white shadow-glow'
+                          ? 'bg-brand-600 font-medium text-white'
                           : 'text-white/65 hover:bg-white/10 hover:text-white',
                       ].join(' ')}
                     >
