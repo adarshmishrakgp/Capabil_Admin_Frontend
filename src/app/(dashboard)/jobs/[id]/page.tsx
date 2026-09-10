@@ -113,7 +113,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </Link>
             {job.status === 'published' && (
               <a
-                href={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://capabiliq.com'}/careers/${job.slug}`}
+                href={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://capabiliq.com'}/careers/open-roles/${job.slug}`}
                 target="_blank"
                 rel="noreferrer"
                 className="btn-ghost"
@@ -292,7 +292,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
               {[
                 ['Compensation', job.salary?.isPublic ? `${salary} (public)` : `${salary} (internal)`],
                 ['Hiring manager', job.hiringManager?.name ?? 'Unassigned'],
-                ['Public URL', `/careers/${job.slug}`],
+                ['Public URL', `/careers/open-roles/${job.slug}`],
                 ['Created', day(job.createdAt)],
                 ['Published', job.publishedAt ? day(job.publishedAt) : 'Not published'],
               ].map(([label, value]) => (

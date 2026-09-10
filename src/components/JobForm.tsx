@@ -18,6 +18,9 @@ export type JobDraft = {
   openings: number;
   shortDescription: string;
   description: string;
+  responsibilities: string[];
+  requirements: string[];
+  benefits: string[];
   skills: string[];
   deadline?: string;
   status?: string;
@@ -36,6 +39,9 @@ const EMPTY: JobDraft = {
   openings: 1,
   shortDescription: '',
   description: '',
+  responsibilities: [],
+  requirements: [],
+  benefits: [],
   skills: [],
   salary: { currency: 'INR', isPublic: false },
   seo: {},
@@ -57,9 +63,61 @@ const BANDS: [number, number, string][] = [
   [12, 20, '12+ years'],
 ];
 
+/**
+ * A bulleted section of the job ad, edited as one point per line — the shape
+ * recruiters already write these in. It is deliberately uncontrolled: the lines
+ * are parsed into an array on blur, so typing never fights the split/join.
+ * Defined at module level so a re-render elsewhere in the form cannot remount it
+ * and discard text the recruiter has not blurred out of yet.
+ */
+function BulletField({
+  label,
+  hint,
+  placeholder,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  placeholder: string;
+  value: string[];
+  onChange: (points: string[]) => void;
+}) {
+  return (
+    <div>
+      <label className="label">{label}</label>
+      <textarea
+        className="field h-32 resize-y"
+        placeholder={placeholder}
+        defaultValue={value.join('\n')}
+        onBlur={(e) =>
+          onChange(
+            e.target.value
+              .split('\n')
+              .map((line) => line.replace(/^[-*•]\s*/, '').trim())
+              .filter(Boolean),
+          )
+        }
+      />
+      <p className="mt-1 text-[13px] text-ink-400">
+        {hint} · {value.length} {value.length === 1 ? 'point' : 'points'}
+      </p>
+    </div>
+  );
+}
+
 export default function JobForm({ initial, jobId }: { initial?: JobDraft; jobId?: string }) {
   const router = useRouter();
-  const [job, setJob] = useState<JobDraft>({ ...EMPTY, ...initial });
+  // An older job saved before these fields existed comes back without them —
+  // spreading `initial` over EMPTY would then set them to undefined.
+  const [job, setJob] = useState<JobDraft>(() => ({
+    ...EMPTY,
+    ...initial,
+    responsibilities: initial?.responsibilities ?? [],
+    requirements: initial?.requirements ?? [],
+    benefits: initial?.benefits ?? [],
+    skills: initial?.skills ?? [],
+  }));
   const [skillDraft, setSkillDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -113,6 +171,9 @@ export default function JobForm({ initial, jobId }: { initial?: JobDraft; jobId?
       openings: Number(job.openings),
       shortDescription: job.shortDescription || undefined,
       description: job.description || undefined,
+      responsibilities: job.responsibilities,
+      requirements: job.requirements,
+      benefits: job.benefits,
       skills: job.skills,
       deadline: job.deadline || undefined,
       salary:
@@ -321,6 +382,35 @@ export default function JobForm({ initial, jobId }: { initial?: JobDraft; jobId?
                 onChange={(e) => set('shortDescription', e.target.value)}
               />
               <p className="mt-1 text-[13px] text-ink-400">{job.shortDescription.length}/300</p>
+            </div>
+          </Card>
+
+          <Card
+            title="What the role involves"
+            description="One point per line — each becomes a bullet on the public job page"
+          >
+            <div className="grid gap-4">
+              <BulletField
+                value={job.responsibilities}
+                onChange={(points) => set('responsibilities', points)}
+                label="Responsibilities"
+                hint="Shown as “What you will do”"
+                placeholder={'Own the delivery of a client-facing service\nRun weekly reviews with the engineering leads'}
+              />
+              <BulletField
+                value={job.requirements}
+                onChange={(points) => set('requirements', points)}
+                label="Requirements"
+                hint="Shown as “What we are looking for”"
+                placeholder={'5+ years building production data pipelines\nStrong SQL and Python'}
+              />
+              <BulletField
+                value={job.benefits}
+                onChange={(points) => set('benefits', points)}
+                label="Benefits"
+                hint="Shown as “What we offer”"
+                placeholder={'Health cover for you and your dependants\nAnnual learning budget'}
+              />
             </div>
           </Card>
 

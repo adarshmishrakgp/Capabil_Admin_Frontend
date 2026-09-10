@@ -17,3 +17,22 @@ export const API_URL = resolveApiUrl();
 export const API_URL_IS_CONFIGURED = Boolean(process.env.NEXT_PUBLIC_API_URL?.trim());
 
 export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== 'false';
+
+/**
+ * The public marketing site. Used only to build "view the live page" links out
+ * of the panel, so a wrong value costs a broken link, never a failed request.
+ */
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://capabiliq.com').replace(/\/+$/, '');
+
+/**
+ * Cover images are usually absolute URLs from the media endpoint, but a path
+ * like /images/... means "a file the public site serves", so it has to be
+ * resolved against the site rather than against the panel's own origin —
+ * otherwise the preview 404s and the thumbnail comes up blank.
+ */
+export function mediaUrl(url?: string, key?: string): string | undefined {
+  if (key?.startsWith('public/')) return new URL(`/media/${key.split('/').map(encodeURIComponent).join('/')}`, API_URL).toString();
+  if (!url) return undefined;
+  if (url.startsWith('/media/public/')) return new URL(url, API_URL).toString();
+  return url.startsWith('/') ? `${SITE_URL}${url}` : url;
+}

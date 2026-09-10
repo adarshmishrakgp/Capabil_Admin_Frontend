@@ -21,8 +21,24 @@ const NAV: Group[] = [
     ],
   },
   {
+    heading: 'Content',
+    items: [
+      { label: 'Blog posts', href: '/blog' },
+      { label: 'Case studies', href: '/case-studies' },
+      { label: 'Categories & tags', href: '/blog/taxonomy' },
+      { label: 'Comments', href: '/blog/comments' },
+    ],
+  },
+  {
     heading: 'Audience',
-    items: [{ label: 'Subscribers', href: '/newsletter' }],
+    items: [
+      { label: 'Leads', href: '/leads' },
+      { label: 'Subscribers', href: '/newsletter' },
+    ],
+  },
+  {
+    heading: 'System',
+    items: [{ label: 'Audit log', href: '/audit' }],
   },
 ];
 
@@ -32,7 +48,13 @@ const ICON_PATHS: Record<string, string> = {
   Jobs: 'M3 8h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18',
   Applications: 'M3 7l9 6 9-6M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z',
   Candidates: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87',
+  'Blog posts': 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2zM9 7h7M9 11h7',
+  'Categories & tags': 'M20.6 13.4 12 4.8V2H4v8h2.8l8.6 8.6a2 2 0 0 0 2.8 0l2.4-2.4a2 2 0 0 0 0-2.8zM7.5 6.5h.01',
+  Comments: 'M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 21l2-4.9A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4z',
+  'Case studies': 'M12 3 3 8v8l9 5 9-5V8zM3 8l9 5 9-5M12 13v8',
   Subscribers: 'M4 4h16v16H4zM4 8l8 5 8-5',
+  Leads: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+  'Audit log': 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 13h6M9 17h6',
 };
 
 function Icon({ name, className }: { name: string; className?: string }) {
@@ -58,15 +80,29 @@ export default function Sidebar({
   newApplications = 0,
   publishedJobs = 0,
   openApplications = 0,
+  pendingComments = 0,
 }: {
   newApplications?: number;
   publishedJobs?: number;
   openApplications?: number;
+  pendingComments?: number;
 }) {
   const pathname = usePathname();
 
-  const isActive = (href: string) =>
+  /**
+   * The most specific match wins. A plain prefix test would light up both
+   * "Blog posts" (/blog) and "Categories & tags" (/blog/taxonomy) on the
+   * taxonomy page, because one href is a prefix of the other.
+   */
+  const matches = (href: string) =>
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+
+  const bestMatch = NAV.flatMap((group) => group.items)
+    .map((item) => item.href)
+    .filter(matches)
+    .sort((a, b) => b.length - a.length)[0];
+
+  const isActive = (href: string) => href === bestMatch;
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col bg-night bg-gradient-to-b from-[#1f1228] to-[#170d1d] lg:flex">
@@ -87,7 +123,9 @@ export default function Sidebar({
             <ul className="space-y-0.5">
               {group.items.map((item) => {
                 const active = isActive(item.href);
-                const badge = item.label === 'Applications' && newApplications > 0 ? String(newApplications) : undefined;
+                const count =
+                  item.label === 'Applications' ? newApplications : item.label === 'Comments' ? pendingComments : 0;
+                const badge = count > 0 ? String(count) : undefined;
                 return (
                   <li key={item.href}>
                     <Link
@@ -110,7 +148,11 @@ export default function Sidebar({
                       {badge && (
                         <span
                           className="rounded-md bg-accent-600 px-1.5 py-0.5 text-xs font-semibold text-white"
-                          title={`${badge} application(s) in the last 7 days`}
+                          title={
+                            item.label === 'Comments'
+                              ? `${badge} comment(s) waiting for moderation`
+                              : `${badge} application(s) in the last 7 days`
+                          }
                         >
                           {badge}
                         </span>

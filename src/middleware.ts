@@ -43,6 +43,9 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!signedIn) {
+    if (pathname.startsWith('/api/resumes/')) {
+      return NextResponse.json({ error: 'Please sign in to view resumes.' }, { status: 401 });
+    }
     const url = new URL('/login', request.url);
     if (pathname !== '/') url.searchParams.set('next', `${pathname}${search}`);
     return NextResponse.redirect(url);
@@ -73,7 +76,9 @@ export async function middleware(request: NextRequest) {
       // Refresh rejected — the session is genuinely over.
       const url = new URL('/login', request.url);
       url.searchParams.set('next', `${pathname}${search}`);
-      const response = NextResponse.redirect(url);
+      const response = pathname.startsWith('/api/resumes/')
+        ? NextResponse.json({ error: 'Your session expired. Please sign in again.' }, { status: 401 })
+        : NextResponse.redirect(url);
       response.cookies.delete(TOKEN_COOKIE);
       response.cookies.delete(USER_COOKIE);
       response.cookies.delete(REFRESH_COOKIE);

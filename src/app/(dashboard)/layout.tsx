@@ -3,7 +3,10 @@ import Topbar from '@/components/Topbar';
 import { ROLE_LABEL, getSessionUser } from '@/lib/session';
 import { apiFetch } from '@/lib/server-api';
 
-type Stats = { kpis: { activeJobs: number; newApplications: number }; pipeline: Record<string, number> };
+type Stats = {
+  kpis: { activeJobs: number; newApplications: number; pendingComments: number };
+  pipeline: Record<string, number>;
+};
 
 const OPEN_STAGES = ['new', 'under_review', 'shortlisted', 'interview', 'selected'];
 
@@ -21,6 +24,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         newApplications={kpis?.kpis.newApplications ?? 0}
         publishedJobs={kpis?.kpis.activeJobs ?? 0}
         openApplications={openApplications}
+        pendingComments={kpis?.kpis.pendingComments ?? 0}
       />
       <div className="lg:pl-[248px]">
         <Topbar roleLabel={user ? (ROLE_LABEL[user.role] ?? user.role) : 'Signed in'} />

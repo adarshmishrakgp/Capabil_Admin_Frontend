@@ -22,17 +22,28 @@ async function forward(request: Request, ctx: { params: Promise<{ path: string[]
     if (contentType.includes('multipart/form-data')) {
       init.body = await request.formData(); // browser sets the boundary
     } else {
-      init.body = await request.text();
-      headers['Content-Type'] = 'application/json';
+      const body = await request.text();
+      // A DELETE usually has none. Forwarding an empty string still declares a
+      // JSON body, which the API then has to parse out of nothing.
+      if (body) {
+        init.body = body;
+        headers['Content-Type'] = 'application/json';
+      }
     }
   }
 
   try {
     const res = await fetch(url, init);
     const text = await res.text();
-    return new NextResponse(text, {
+
+    // 204/205/304 must not carry a body — constructing a Response with one
+    // throws, which would surface as API_UNREACHABLE for a request that in fact
+    // succeeded. Every successful DELETE in the panel comes back this way.
+    const bodiless = res.status === 204 || res.status === 205 || res.status === 304;
+
+    return new NextResponse(bodiless ? null : text, {
       status: res.status,
-      headers: { 'Content-Type': res.headers.get('content-type') ?? 'application/json' },
+      headers: bodiless ? undefined : { 'Content-Type': res.headers.get('content-type') ?? 'application/json' },
     });
   } catch {
     return NextResponse.json(

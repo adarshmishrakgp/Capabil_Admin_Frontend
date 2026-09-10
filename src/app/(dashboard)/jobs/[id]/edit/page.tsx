@@ -10,9 +10,10 @@ type Job = JobDraft & { _id: string };
 
 export default async function EditJobPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  // the list endpoint is the read path recruiters already have permission for
-  const result = await apiFetch<Job[]>(`/admin/jobs?limit=200`);
-  const job = result.ok ? result.data.find((j) => j._id === id) : undefined;
+  // The detail endpoint takes the same jobs:read permission as the list, and
+  // reads one document instead of scanning the first page of every job.
+  const result = await apiFetch<{ job: Job }>(`/admin/jobs/${id}`);
+  const job = result.ok ? result.data.job : undefined;
 
   if (!job) {
     return (

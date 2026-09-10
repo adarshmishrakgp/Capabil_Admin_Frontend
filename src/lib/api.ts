@@ -1,7 +1,11 @@
 /**
- * Thin REST client for the Node API. Every list endpoint returns the same
- * envelope: { success, data, meta }. When NEXT_PUBLIC_USE_MOCK is 'true' the
- * pages read from lib/data.ts instead and this module is never called.
+ * Thin REST client for the Node API, for browser code that talks to it
+ * directly. Every list endpoint returns the same envelope: { success, data,
+ * meta }.
+ *
+ * The panel itself does not use this: server components read through
+ * lib/server-api.ts and client components through /api/proxy, so the access
+ * token stays in an httpOnly cookie and never reaches the browser.
  */
 
 import { API_URL as BASE, USE_MOCK } from './config';

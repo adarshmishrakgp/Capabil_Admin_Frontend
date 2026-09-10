@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import ApplicationsTable, { type Row } from '@/components/ApplicationsTable';
 import { Funnel } from '@/components/charts';
 import { Badge, Card, EmptyState, PageHeader, StatCard } from '@/components/ui';
@@ -103,22 +104,41 @@ export default async function ApplicationsPage({
       )}
 
       <Card padded={false}>
-        {applications.length === 0 ? (
-          <EmptyState
-            title={list.ok ? (isFiltered ? 'No applications match this filter' : 'No applications yet') : 'Could not load applications'}
-            hint={
-              list.ok
-                ? isFiltered
-                  ? 'Try clearing the filters, or wait for candidates to apply to this role.'
-                  : 'Submissions from the careers page land here the moment a candidate applies.'
-                : 'Fix the error above and reload this page.'
+        {/* The table always renders, even with no rows: it owns the filter bar,
+            and a filter that matches nothing must still be reachable to undo. */}
+        <Suspense fallback={<div className="p-6 text-[15px] text-ink-500">Loading…</div>}>
+          <ApplicationsTable
+            rows={applications}
+            roles={roles}
+            empty={
+              <EmptyState
+                title={
+                  list.ok
+                    ? isFiltered
+                      ? filteredRole
+                        ? `No applications for ${filteredRole.title} yet`
+                        : 'No applications match these filters'
+                      : 'No applications yet'
+                    : 'Could not load applications'
+                }
+                hint={
+                  list.ok
+                    ? isFiltered
+                      ? 'Nobody matches what you picked above. Change a filter, or clear them to see every application again.'
+                      : 'Submissions from the careers page land here the moment a candidate applies.'
+                    : 'Fix the error above and reload this page.'
+                }
+                action={
+                  list.ok && isFiltered ? (
+                    <Link href="/applications" className="btn-primary mt-2">
+                      Clear filters
+                    </Link>
+                  ) : undefined
+                }
+              />
             }
           />
-        ) : (
-          <Suspense fallback={<div className="p-6 text-[15px] text-ink-500">Loading…</div>}>
-            <ApplicationsTable rows={applications} roles={roles} />
-          </Suspense>
-        )}
+        </Suspense>
 
         {applications.length > 0 && (
           <div className="border-t border-ink-200 px-5 py-3.5 text-[15px] text-ink-500">

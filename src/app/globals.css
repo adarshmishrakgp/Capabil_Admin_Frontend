@@ -12,7 +12,7 @@
     -webkit-font-smoothing: antialiased;
   }
   body {
-    @apply min-h-screen bg-ink-50 text-ink-700;
+    @apply min-h-screen bg-ink-50 font-sans text-ink-700;
   }
   ::selection {
     @apply bg-brand-200 text-brand-900;
@@ -63,7 +63,118 @@
     scrollbar-width: thin;
     scrollbar-color: #4a3355 transparent;
   }
+  /* Article body — shared by the editor surface and its preview, so what an
+     author types looks like what the blog renders. */
+  .prose-editor h2 {
+    @apply mb-2 mt-6 text-[22px] font-semibold leading-snug text-ink-900 first:mt-0;
+  }
+  .prose-editor h3 {
+    @apply mb-2 mt-5 text-[18px] font-semibold leading-snug text-ink-900 first:mt-0;
+  }
+  .prose-editor p {
+    @apply mb-4;
+  }
+  .prose-editor ul {
+    @apply mb-4 list-disc space-y-1 pl-6;
+  }
+  .prose-editor ol {
+    @apply mb-4 list-decimal space-y-1 pl-6;
+  }
+  .prose-editor blockquote {
+    @apply mb-4 border-l-4 border-brand-300 bg-brand-50/60 py-2 pl-4 italic text-ink-700;
+  }
+  .prose-editor a {
+    @apply text-brand-700 underline underline-offset-2;
+  }
+  .prose-editor img {
+    @apply my-4 max-w-full rounded-xl;
+  }
+  .prose-editor figure {
+    @apply my-4;
+  }
+  .prose-editor figcaption {
+    @apply mt-1.5 text-[13px] text-ink-500;
+  }
+  .prose-editor strong {
+    @apply font-semibold text-ink-900;
+  }
+
   input[type='checkbox'] {
     @apply rounded border-ink-300 text-brand-600 focus:ring-brand-400;
   }
+}
+
+/*
+ * Body copy inside a public-page preview.
+ *
+ * Deliberately colour-agnostic: the preview sets the text colour for its own
+ * ground (dark for a case study, light for an article), so these rules only
+ * handle rhythm and weight and inherit everything else.
+ */
+.preview-body > * + * {
+  margin-top: 1.1em;
+}
+
+.preview-body h2 {
+  font-size: 1.55em;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-top: 1.6em;
+  color: currentColor;
+  opacity: 1;
+}
+
+.preview-body h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.5em;
+}
+
+.preview-body ul,
+.preview-body ol {
+  padding-left: 1.3em;
+  list-style-position: outside;
+}
+
+.preview-body ul {
+  list-style-type: disc;
+}
+
+.preview-body ol {
+  list-style-type: decimal;
+}
+
+.preview-body li + li {
+  margin-top: 0.4em;
+}
+
+.preview-body blockquote {
+  border-left: 3px solid currentColor;
+  padding-left: 1em;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.preview-body a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.preview-body strong {
+  font-weight: 600;
+}
+
+.preview-body img {
+  border-radius: 14px;
+  max-width: 100%;
+  height: auto;
+}
+
+.preview-body iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 14px;
 }

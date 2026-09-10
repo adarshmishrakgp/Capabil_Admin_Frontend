@@ -33,14 +33,36 @@ export default function LoginPage() {
       </div>
 
       <div className="relative hidden overflow-hidden bg-brand lg:block">
-        <div className="absolute inset-0 opacity-30 [background:radial-gradient(700px_circle_at_25%_15%,#fff,transparent_60%)]" />
-        <div className="absolute inset-0 [background:radial-gradient(900px_circle_at_90%_100%,rgba(18,10,22,.75),transparent_60%)]" />
+        <Image
+          src="/images/login-panel.webp"
+          alt=""
+          fill
+          priority
+          sizes="50vw"
+          className="object-cover object-[30%_center]"
+        />
+        {/* Brand wash over the photograph: multiply keeps the room's own light
+            and shadow instead of flattening it under a solid colour. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-brand opacity-45 mix-blend-multiply"
+        />
+        {/* The copy sits at the bottom, so it gets its own darkening ramp —
+            legibility here cannot depend on how the photo happens to be lit. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 [background:linear-gradient(0deg,rgba(20,11,26,.92)_0%,rgba(20,11,26,.55)_38%,transparent_72%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 opacity-25 [background:radial-gradient(700px_circle_at_25%_15%,#fff,transparent_60%)]"
+        />
         <div className="relative flex h-full flex-col justify-end p-12 text-white">
-          <blockquote className="max-w-md text-[26px] font-medium leading-snug">
+          <blockquote className="max-w-md text-[26px] font-medium leading-snug [text-shadow:0_1px_24px_rgba(20,11,26,.5)]">
             “Every application, article, subscriber and enquiry — in one place, owned by the team that runs them.”
           </blockquote>
-          <p className="mt-6 text-[15px] text-white/70">CapabilIQ Admin Console · Careers · Content · Audience · Leads</p>
-          <dl className="mt-10 grid grid-cols-3 gap-6 border-t border-white/20 pt-8">
+          <p className="mt-6 text-[15px] text-white/75">CapabilIQ Admin Console · Careers · Content · Audience · Leads</p>
+          <dl className="mt-10 grid grid-cols-3 gap-6 border-t border-white/25 pt-8">
             {[
               ['412', 'applications this month'],
               ['2,841', 'newsletter subscribers'],
@@ -48,7 +70,7 @@ export default function LoginPage() {
             ].map(([v, k]) => (
               <div key={k}>
                 <dt className="text-2xl font-semibold">{v}</dt>
-                <dd className="mt-0.5 text-[13px] text-white/70">{k}</dd>
+                <dd className="mt-0.5 text-[13px] text-white/75">{k}</dd>
               </div>
             ))}
           </dl>

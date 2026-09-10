@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import ReviewPanel from './ReviewPanel';
 import { Avatar, StatusBadge, Table } from './ui';
 
@@ -26,9 +26,16 @@ const STATUSES = ['new', 'under_review', 'shortlisted', 'interview', 'selected',
 export default function ApplicationsTable({
   rows,
   roles,
+  empty,
 }: {
   rows: Row[];
   roles: { _id: string; title: string }[];
+  /**
+   * Shown in place of the table when nothing matches. It renders *below* the
+   * toolbar on purpose: a filter that returns no rows must still leave the
+   * controls on screen, or there is no way back out of it.
+   */
+  empty?: ReactNode;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -138,53 +145,57 @@ export default function ApplicationsTable({
         </div>
       )}
 
-      <Table head={['', 'Candidate', 'Applied for', 'Experience', 'Rating', 'Applied on', 'Status', '']}>
-        {rows.map((a) => (
-          <tr key={a._id} className={selected.has(a._id) ? 'bg-brand-50/50' : 'hover:bg-ink-50/60'}>
-            <td className="td w-10">
-              <input
-                type="checkbox"
-                className="h-4 w-4"
-                checked={selected.has(a._id)}
-                onChange={() => toggle(a._id)}
-                aria-label={`Select ${a.fullName}`}
-              />
-            </td>
-            <td className="td">
-              <button className="flex items-center gap-3 text-left" onClick={() => setReviewing(a._id)}>
-                <Avatar name={a.fullName} />
-                <span>
-                  <span className="block font-medium text-ink-900 hover:text-brand-700 hover:underline">
-                    {a.fullName}
+      {rows.length === 0 ? (
+        empty
+      ) : (
+        <Table head={['', 'Candidate', 'Applied for', 'Experience', 'Rating', 'Applied on', 'Status', '']}>
+          {rows.map((a) => (
+            <tr key={a._id} className={selected.has(a._id) ? 'bg-brand-50/50' : 'hover:bg-ink-50/60'}>
+              <td className="td w-10">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4"
+                  checked={selected.has(a._id)}
+                  onChange={() => toggle(a._id)}
+                  aria-label={`Select ${a.fullName}`}
+                />
+              </td>
+              <td className="td">
+                <button className="flex items-center gap-3 text-left" onClick={() => setReviewing(a._id)}>
+                  <Avatar name={a.fullName} />
+                  <span>
+                    <span className="block font-medium text-ink-900 hover:text-brand-700 hover:underline">
+                      {a.fullName}
+                    </span>
+                    <span className="block text-[13px] text-ink-400">
+                      {a.email}
+                      {a.phone ? ` · ${a.phone}` : ''}
+                    </span>
+                    <span className="block font-mono text-[13px] text-ink-400">{a.reference}</span>
                   </span>
-                  <span className="block text-[13px] text-ink-400">
-                    {a.email}
-                    {a.phone ? ` · ${a.phone}` : ''}
-                  </span>
-                  <span className="block font-mono text-[13px] text-ink-400">{a.reference}</span>
+                </button>
+              </td>
+              <td className="td">{a.job?.title ?? '—'}</td>
+              <td className="td">{a.totalExperienceYears != null ? `${a.totalExperienceYears} yrs` : '—'}</td>
+              <td className="td">
+                <span className="text-[15px] text-amber-500">
+                  {'★'.repeat(a.rating ?? 0)}
+                  <span className="text-ink-200">{'★'.repeat(5 - (a.rating ?? 0))}</span>
                 </span>
-              </button>
-            </td>
-            <td className="td">{a.job?.title ?? '—'}</td>
-            <td className="td">{a.totalExperienceYears != null ? `${a.totalExperienceYears} yrs` : '—'}</td>
-            <td className="td">
-              <span className="text-[15px] text-amber-500">
-                {'★'.repeat(a.rating ?? 0)}
-                <span className="text-ink-200">{'★'.repeat(5 - (a.rating ?? 0))}</span>
-              </span>
-            </td>
-            <td className="td">{new Date(a.createdAt).toISOString().slice(0, 10)}</td>
-            <td className="td">
-              <StatusBadge status={a.status} />
-            </td>
-            <td className="td text-right">
-              <button className="btn-ghost px-3 py-1.5 text-[13px]" onClick={() => setReviewing(a._id)}>
-                Review
-              </button>
-            </td>
-          </tr>
-        ))}
-      </Table>
+              </td>
+              <td className="td">{new Date(a.createdAt).toISOString().slice(0, 10)}</td>
+              <td className="td">
+                <StatusBadge status={a.status} />
+              </td>
+              <td className="td text-right">
+                <button className="btn-ghost px-3 py-1.5 text-[13px]" onClick={() => setReviewing(a._id)}>
+                  Review
+                </button>
+              </td>
+            </tr>
+          ))}
+        </Table>
+      )}
 
       {reviewing && <ReviewPanel applicationId={reviewing} onClose={() => setReviewing(null)} />}
     </>

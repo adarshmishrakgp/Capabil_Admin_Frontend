@@ -179,8 +179,8 @@ export function Table({ head, children }: { head: string[]; children: ReactNode 
       <table className="w-full border-collapse">
         <thead className="border-b border-ink-200 bg-ink-50/70">
           <tr>
-            {head.map((h) => (
-              <th key={h} className="th">
+            {head.map((h, columnIndex) => (
+              <th key={columnIndex} className="th">
                 {h}
               </th>
             ))}
@@ -188,39 +188,6 @@ export function Table({ head, children }: { head: string[]; children: ReactNode 
         </thead>
         <tbody className="divide-y divide-ink-100">{children}</tbody>
       </table>
-    </div>
-  );
-}
-
-export function Toolbar({
-  placeholder,
-  filters = [],
-  children,
-}: {
-  placeholder: string;
-  filters?: { label: string; options: string[] }[];
-  children?: ReactNode;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-ink-200 px-5 py-3.5">
-      <div className="relative min-w-[220px] flex-1">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400">
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
-        </span>
-        <input className="field pl-8" placeholder={placeholder} />
-      </div>
-      {filters.map((f) => (
-        <select key={f.label} className="field w-auto" defaultValue="">
-          <option value="">{f.label}</option>
-          {f.options.map((o) => (
-            <option key={o}>{humanize(o)}</option>
-          ))}
-        </select>
-      ))}
-      {children}
     </div>
   );
 }

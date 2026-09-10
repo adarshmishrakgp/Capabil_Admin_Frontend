@@ -3,24 +3,67 @@
  * reads as one system; swap for Recharts if richer interaction is ever needed.
  */
 
+/**
+ * Pick round axis values. Application counts are small integers, so a scale of
+ * 0/1.5/3/4.5 would be nonsense — the step is forced to a whole number until
+ * the range is large enough for 2s, 5s and 10s to read naturally.
+ */
+function niceScale(max: number): { top: number; step: number } {
+  if (max <= 4) return { top: Math.max(max, 1), step: 1 };
+  const rough = max / 4;
+  const magnitude = 10 ** Math.floor(Math.log10(rough));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((candidate) => candidate >= rough) ?? magnitude * 10;
+  return { top: Math.ceil(max / step) * step, step };
+}
+
 export function AreaChart({
-  data,
-  height = 180,
+  points,
+  height = 210,
   label,
+  valueLabel = 'Applications',
 }: {
-  data: number[];
+  /** One entry per bucket, in order. `label` is the x-axis value (a date). */
+  points: { label: string; value: number }[];
   height?: number;
   label?: string;
+  /** What the y axis counts — named on the axis and in each tooltip. */
+  valueLabel?: string;
 }) {
-  const w = 600;
+  const w = 640;
   const h = height;
-  const pad = 8;
-  const max = Math.max(...data) * 1.15;
-  const step = (w - pad * 2) / (data.length - 1);
-  const points = data.map((v, i) => [pad + i * step, h - pad - (v / max) * (h - pad * 2)] as const);
-  const line = points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
-  const area = `${line} L${w - pad},${h - pad} L${pad},${h - pad} Z`;
-  const last = points[points.length - 1];
+  // Gutters for the axis labels. Without them the plot would sit under its own
+  // numbers, which is why the chart previously had no room for any.
+  const left = 34;
+  const right = 10;
+  const top = 12;
+  const bottom = 26;
+
+  // A quiet period is a flat line along the bottom, not a divide-by-zero: with
+  // no data, or every day at zero, the scale would otherwise be 0/Infinity and
+  // every coordinate would come out NaN.
+  const series = points.length > 1 ? points : [...points, { label: '', value: 0 }];
+  const { top: scaleTop, step } = niceScale(Math.max(...series.map((p) => p.value), 0));
+
+  const plotW = w - left - right;
+  const plotH = h - top - bottom;
+  const stepX = plotW / (series.length - 1);
+  const x = (i: number) => left + i * stepX;
+  const y = (value: number) => top + plotH - (value / scaleTop) * plotH;
+
+  const coords = series.map((point, i) => [x(i), y(point.value)] as const);
+  const line = coords.map(([cx, cy], i) => `${i === 0 ? 'M' : 'L'}${cx.toFixed(1)},${cy.toFixed(1)}`).join(' ');
+  const area = `${line} L${x(series.length - 1)},${top + plotH} L${left},${top + plotH} Z`;
+  const last = coords[coords.length - 1];
+
+  const ticks: number[] = [];
+  for (let value = 0; value <= scaleTop + 1e-9; value += step) ticks.push(Number(value.toFixed(2)));
+
+  /** Day-month, so a 30-point axis stays readable. */
+  const shortDate = (value: string) =>
+    value ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+
+  // Roughly six labels, whatever the series length — 30 dates would collide.
+  const labelEvery = Math.max(1, Math.ceil(series.length / 6));
 
   return (
     <figure>
@@ -35,13 +78,73 @@ export function AreaChart({
             <stop offset="100%" stopColor="#b94a9c" />
           </linearGradient>
         </defs>
-        {[0.25, 0.5, 0.75].map((f) => (
-          <line key={f} x1={pad} x2={w - pad} y1={h * f} y2={h * f} stroke="#eeeef3" strokeWidth="1" />
+
+        {/* y axis: a gridline and a number for every tick */}
+        {ticks.map((tick) => (
+          <g key={tick}>
+            <line x1={left} x2={w - right} y1={y(tick)} y2={y(tick)} stroke="#eeeef3" strokeWidth="1" />
+            <text
+              x={left - 7}
+              y={y(tick)}
+              textAnchor="end"
+              dominantBaseline="middle"
+              fontSize="10"
+              fill="#9797ab"
+              className="tabular-nums"
+            >
+              {tick}
+            </text>
+          </g>
         ))}
+
         <path d={area} fill="url(#areaFill)" />
         <path d={line} fill="none" stroke="url(#areaLine)" strokeWidth="2.5" strokeLinecap="round" />
+
+        {/* x axis: a date every few buckets, so 30 days do not overlap */}
+        {series.map((point, i) =>
+          i % labelEvery === 0 || i === series.length - 1 ? (
+            <text
+              key={`${point.label}-${i}`}
+              x={x(i)}
+              y={h - 8}
+              textAnchor={i === 0 ? 'start' : i === series.length - 1 ? 'end' : 'middle'}
+              fontSize="10"
+              fill="#9797ab"
+            >
+              {shortDate(point.label)}
+            </text>
+          ) : null,
+        )}
+
+        {/* A dot on every day that had activity, so single spikes are readable */}
+        {series.map((point, i) =>
+          point.value > 0 ? <circle key={`dot-${i}`} cx={x(i)} cy={y(point.value)} r="2.5" fill="#b94a9c" /> : null,
+        )}
         <circle cx={last[0]} cy={last[1]} r="4" fill="#b94a9c" stroke="#fff" strokeWidth="2" />
+
+        {/*
+          Hover targets. A full-height transparent band per bucket with a <title>
+          gives a native tooltip on every point — including the zero days, which
+          have no dot to aim at — and needs no client-side JavaScript.
+        */}
+        {series.map((point, i) => (
+          <rect
+            key={`hit-${i}`}
+            x={x(i) - stepX / 2}
+            y={top}
+            width={stepX}
+            height={plotH}
+            fill="transparent"
+          >
+            <title>{`${shortDate(point.label)}: ${point.value} ${valueLabel.toLowerCase()}`}</title>
+          </rect>
+        ))}
       </svg>
+
+      <figcaption className="mt-2 flex items-center justify-between text-[13px] text-ink-400">
+        <span>{valueLabel} per day</span>
+        <span>Hover a day for its exact count</span>
+      </figcaption>
     </figure>
   );
 }
